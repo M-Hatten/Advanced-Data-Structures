@@ -28,12 +28,14 @@ class Screen {
     private HashMap<State, StateEnterExitMeth> stateExitMeths;
 
     //initializing file reading objects and scanner oobjects
-    File StackObj = new File("stack.txt");
-    File queueObj = new File("queue.txt");
-    File listObj = new File("list.txt");
     public static Scanner stackScanner;
     public static Scanner queueScanner;
     public static Scanner listScanner;
+
+    private static Stack<Character> stack = new Stack<Character>();
+    private static Queue<Character> queue = new LinkedList<Character>();
+    private static ArrayList<Character> list = new ArrayList<Character>();
+
 
     //scanner input object
     Scanner userInputScanner = new Scanner(System.in); 
@@ -48,10 +50,10 @@ class Screen {
 
         //initializing Stay hashmap and putting stuff in there
         stateStayMeths = new HashMap<>();
-        stateStayMeths.put(State.IDLE, () -> { StateStayIdle(); return StateStayIdle();});
-        stateStayMeths.put(State.STACK, () -> { StateStayStack(); return StateStayStack();});
-        stateStayMeths.put(State.QUEUE, () -> { StateStayQueue(); return StateStayQueue();});
-        stateStayMeths.put(State.LIST, () -> { StateStayList(); return StateStayList();});
+        stateStayMeths.put(State.IDLE, () -> { return StateStayIdle();});
+        stateStayMeths.put(State.STACK, () -> { return StateStayStack();});
+        stateStayMeths.put(State.QUEUE, () -> { return StateStayQueue();});
+        stateStayMeths.put(State.LIST, () -> {  return StateStayList();});
 
         //Initializing Exit hashmap and puttign stuff in there
         stateExitMeths = new HashMap<>();
@@ -62,18 +64,18 @@ class Screen {
 
         //The state we start in
         state = State.IDLE;
-        changeState(State.IDLE);
     }
 
     //STATE METHODS BELOW
 
     //change state method
     public void changeState(State newState){
-        if (state != newState) {
-            state = newState;
-            if (stateEnterMeths.containsKey(newState)){
-                stateEnterMeths.get(newState).invoke();
+        if (state != newState){
+            if (state != State.IDLE) {
+                stateExitMeths.get(state).invoke();
             }
+            state = newState;
+            stateEnterMeths.get(state).invoke();
         }
     }
 
@@ -90,29 +92,58 @@ class Screen {
      * - read the text file
      */
     private void StateEnterIdle(){
-        //i haven't really found that this is ever used but I'm throwing the UI in here jic
-        System.out.println("State Enter Idle");
-        // System.out.println("1. Stack\n 2. Queue\n 3. List\n 4. Quit\n ? ");
-        stateStayMeths.get(state).invoke();
+        //System.out.println("State Enter Idle");
     }
     private void StateEnterStack(){
-        System.out.println("State Enter Stack");
+        //System.out.println("State Enter Stack");
         //Read the file
         try{ //the compiler refused to run unless I through a try catch method :/
+            File StackObj = new File("stack.txt");
             stackScanner = new Scanner(StackObj);  
+            String data = stackScanner.nextLine();
+            //load up the stack
+            for (int i = 0; i < data.length(); i++){
+                if (data.charAt(i) != ','){
+                    stack.push(data.charAt(i));
+                }
+            }
         }
         catch (FileNotFoundException e) {
             System.out.println("File not found. Please Try again.");
         }
-        stateStayMeths.get(state).invoke();
     }
     private void StateEnterQueue(){
-        System.out.println("State Enter Queue");
-        stateStayMeths.get(state).invoke();
+        //System.out.println("State Enter Queue");
+        try{ //the compiler refused to run unless I through a try catch method :/
+            File QueueObj = new File("queue.txt");
+            queueScanner = new Scanner(QueueObj);
+            String data = queueScanner.nextLine();
+            for (int i = 0; i < data.length(); i++){
+                if (data.charAt(i) != ','){
+                    queue.add(data.charAt(i));
+                }
+            }  
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("File not found. Please Try again.");
+        }
     }
     private void StateEnterList(){
-        System.out.println("State Enter List");
-        stateStayMeths.get(state).invoke();
+        //System.out.println("State Enter List");
+        try{ //the compiler refused to run unless I through a try catch method :/
+            File ListObj = new File("list.txt");
+            listScanner = new Scanner(ListObj);  
+            String data = listScanner.nextLine();
+            for (int i = 0; i < data.length(); i++){
+                if (data.charAt(i) != ',') {
+                    list.add(data.charAt(i));
+                }
+            }
+
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("File not found. Please Try again.");
+        }
     }
 
     //Stay
@@ -120,78 +151,152 @@ class Screen {
      * - display ui
      * - take user input
      */
+
     private boolean StateStayIdle(){
-        System.out.println("State Stay Idle");
-        System.out.println("1. Stack\n 2. Queue\n 3. List\n 4. Quit\n ? ");
+        //System.out.println("State Stay Idle");
+        System.out.println("1. Stack\n2. Queue\n3. List\n4. Quit\n? ");
         String newInput = userInputScanner.nextLine();
-        while (true){
-            if (newInput.equals("1")){
-                changeState(State.STACK);
-                stateEnterMeths.get(state).invoke();
-            }
-            else if (newInput.equals("2")){
-                changeState(State.QUEUE);
-                stateEnterMeths.get(state).invoke();
-            }
-            else if (newInput.equals("3")){
-                changeState(State.LIST);
-                stateEnterMeths.get(state).invoke();
-            }
-            else if (newInput.equals("4")){
-                System.out.println("Goodbye!");
-                break;
-            }
-            else {
-                System.out.println("Please select a proper option");
-            }
+
+        if (newInput.equals("1")){
+            changeState(State.STACK);
         }
-        return false;
+        else if (newInput.equals("2")){
+            changeState(State.QUEUE);
+        }
+        else if (newInput.equals("3")){
+            changeState(State.LIST);
+        }
+        else if (newInput.equals("4")){
+            System.out.println("Goodbye!");
+            return false;
+        }
+        else {
+            System.out.println("Please select a proper option");
+        }
+        return true;
     }
     private boolean StateStayStack(){
-        System.out.println("State Stay Stack");
-        String newInput;
-        String data = stackScanner.nextLine();
-        Stack<Character> stack = new Stack<>();
-        while (true){
-            //load up the stack
-            for (int i = 0; i < data.length(); i++){
-                if (data.charAt(i) != ','){
-                    stack.push(data.charAt(i));
-                }
-            }
+        //System.out.println("State Stay Stack");
+        Stack<Character> tempStack = new Stack<>();
+        tempStack.addAll(stack);
 
-            //menu and user input
-            System.out.println("1. Push\n 2. Pop\n 3. Save and Move to Queue\n 4. Save and Move to List\n 5. Quit\n ? ");
-            newInput = userInputScanner.nextLine();
-            if (newInput.charAt(0) == '1'){
-                String curstack = data;
-            }
-            else if (newInput.charAt(0) == '2'){
+        System.out.println("|   |\n|---|");
 
-            }
-            else if (newInput.charAt(0) == '3'){
-
-            }
-            else if (newInput.charAt(0) == '4'){
-
-            }
-            else if (newInput.charAt(0) == '5'){
-                System.out.println("Goodbye!");
-                break;
-            }
-            else {
-                System.out.println("Please enter a valid input");
+        while(!tempStack.isEmpty()){
+            for (int j = tempStack.size() - 1; j >= 0; j--){
+                System.out.println("| " + tempStack.pop() + " |");
+                System.out.println("|---|");
             }
         }
-        changeState(State.IDLE);
-        return false;
+        System.out.println("1. Push\n2. Pop\n3. Save and Move to Queue\n4. Save and Move to List\n5. Quit\n? ");
+        String newInput = userInputScanner.nextLine();
+        //push
+        if (newInput.charAt(0) == '1'){
+            stack.push(newInput.charAt(2));
+        }
+        //pop
+        else if (newInput.charAt(0) == '2'){
+            if (!stack.isEmpty()){
+                stack.pop();
+            }
+        }
+        //save and move to queue
+        else if (newInput.charAt(0) == '3'){
+            changeState(State.QUEUE);
+        }
+        //save and move to list
+        else if (newInput.charAt(0) == '4'){
+            changeState(State.LIST);
+        }
+        //quit
+        else if (newInput.charAt(0) == '5'){
+            System.out.println("Goodbye!");
+            return false;
+        }
+        else {
+            System.out.println("Please enter a valid input");
+        }
+        return true; 
     }
     private boolean StateStayQueue(){
-        System.out.println("State Stay Queue");
+        //System.out.println("State Stay Queue");
+        //draw queue
+        Queue<Character> tempQueue = new LinkedList<>();
+        tempQueue.addAll(queue);
+        String line = "| ";
+        while (!tempQueue.isEmpty()){
+            line = line + tempQueue.remove() + " | ";
+        }
+
+        System.out.println(line);
+        System.out.println("1. Enqueue\n2. Dequeue\n3. Save and Move to Stack\n4. Save and Move to List\n5. Quit\n? ");
+
+        String newInput = userInputScanner.nextLine();
+        //enqueue
+        if (newInput.charAt(0) == '1'){
+            queue.add(newInput.charAt(2));
+        }
+        //dequeue
+        else if (newInput.charAt(0) == '2'){
+            if (!queue.isEmpty()){
+                queue.remove();
+            }
+        }
+        //save and move to stack
+        else if (newInput.charAt(0) == '3'){
+            changeState(State.STACK);
+        }
+        //save and move to list
+        else if (newInput.charAt(0) == '4'){
+            changeState(State.LIST);
+        }
+        //quit
+        else if (newInput.charAt(0) == '5'){
+            System.out.println("Goodbye!");
+            return false;
+        }
+        else {
+            System.out.println("Please enter a valid input");
+        }
         return true;
     }
     private boolean StateStayList(){
-        System.out.println("State Stay List");
+        //System.out.println("State Stay List");
+        String line = "{ ";
+        for (int i = 0; i < list.size(); i++){
+            line = line + list.get(i) + ", ";
+        }
+        line = line + " }";
+
+        System.out.println(line);
+        System.out.println("1. Append\n2. Remove\n3. Save and Move to Stack\n4. Save and Move to Queue\n5. Quit\n? ");
+        String newInput = userInputScanner.nextLine();
+        //add to the list
+        if (newInput.charAt(0) == '1'){
+            list.add(newInput.charAt(2));
+        }
+        //remove
+        else if (newInput.charAt(0) == '2'){
+            if (!list.isEmpty()){
+                list.remove(list.size()-1);
+            }
+        }
+        //save and move to stack
+        else if (newInput.charAt(0) == '3'){
+            changeState(State.STACK);
+        }
+        //save and move to queue
+        else if (newInput.charAt(0) == '4'){
+            changeState(State.QUEUE);
+        }
+        //quit
+        else if (newInput.charAt(0) == '5'){
+            System.out.println("Goodbye!");
+            return false;
+        }
+        else {
+            System.out.println("Please enter a valid input");
+        }
         return true;
     }
 
@@ -200,16 +305,63 @@ class Screen {
      * write new data to the file
      */
     private void StateExitIdle(){
-        System.out.println("State Exit Idle");
+        //System.out.println("State Exit Idle");
     }
     private void StateExitStack(){
-        System.out.println("State Exit Stack");
+        //System.out.println("State Exit Stack");
+        Stack<Character> tempStack = new Stack<>();
+        while (!stack.isEmpty()){
+            tempStack.push(stack.pop());
+        }
+        try {
+            File file = new File("stack.txt");
+            FileWriter fw = new FileWriter(file);
+            String text = "";
+            while (!tempStack.isEmpty()){
+                text = text + tempStack.pop() + ",";
+            }
+            for (int i = 0; i < text.length(); i++){
+                fw.write(text.charAt(i));
+            }
+            fw.close();
+        }
+        catch (IOException e) {
+            System.out.println("File not found. Please Try again.");
+        }
     }
     private void StateExitQueue(){
-        System.out.println("State Exit Queue");
+        //System.out.println("State Exit Queue");
+        try {
+            File file = new File("queue.txt");
+            FileWriter fw = new FileWriter(file);
+            String text = "";
+            while (!queue.isEmpty()){
+                text = text + queue.remove() + ",";
+            }
+            for (int i = 0; i < text.length(); i++) 
+                fw.write(text.charAt(i)); 
+            fw.close();
+        } catch (IOException e) {
+            System.err.println("File not found :(");
+        }
     }
-    private void StateExitList(){
-        System.out.println("State Exit List");
+    private void StateExitList(){ 
+        //System.out.println("State Exit List");
+        try {
+            File file = new File("list.txt");
+            FileWriter fw = new FileWriter(file);
+            String text = "";
+            for (int i = 0; i < list.size(); i++){
+                if (list.get(i) != ',' && list.get(i) != ' '){
+                    text = text + list.remove(i) + ",";
+                }
+            }
+            for (int i = 0; i < text.length(); i++) 
+                fw.write(text.charAt(i)); 
+            fw.close();
+        } catch (IOException e) {
+            System.err.println("File not found :(");
+        }
     }
 
 }
